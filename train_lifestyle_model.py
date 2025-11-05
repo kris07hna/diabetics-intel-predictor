@@ -76,7 +76,7 @@ if FAST_MODE:
         'Logistic Regression': LogisticRegression(
             max_iter=300,
             class_weight='balanced',
-            solver='liblinear',
+            solver='lbfgs',
             random_state=42
         )
     }
@@ -101,7 +101,7 @@ else:
         'Logistic Regression': LogisticRegression(
             max_iter=500,
             class_weight='balanced',
-            solver='liblinear',
+            solver='lbfgs',
             random_state=42
         )
     }
