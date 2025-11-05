@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Lifestyle Assessment · DiabetesIntel</title>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--bg: #f0f7ff;
+			--bg-alt: #fafcff;
+			--surface: rgba(255, 255, 255, 0.94);
+			--surface-strong: rgba(255, 255, 255, 0.98);
+			--text: #1f2937;
+			--text-soft: #4b5563;
+			--accent: #2563eb;
+			--accent-dark: #1d4ed8;
+			--accent-soft: rgba(37, 99, 235, 0.12);
+			--success: #16a34a;
+			--warning: #f59e0b;
+			--danger: #dc2626;
+			--border: rgba(15, 23, 42, 0.08);
+			--shadow-soft: 0 22px 44px rgba(15, 23, 42, 0.12);
+			--shadow-card: 0 16px 32px rgba(15, 23, 42, 0.16);
+			--shadow-small: 0 12px 24px rgba(15, 23, 42, 0.12);
+		}
+
+		* { margin: 0; padding: 0; box-sizing: border-box; }
+		html { scroll-behavior: smooth; }
+		body {
+			font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+			background: linear-gradient(160deg, var(--bg) 0%, var(--bg-alt) 44%, #e0f2fe 100%);
+			color: var(--text);
+			line-height: 1.65;
+			min-height: 100vh;
+		}
+
+		.header {
+			text-align: center;
+			padding: 32px 24px;
+			border-bottom: 1px solid var(--border);
+			background: rgba(255, 255, 255, 0.8);
+		}
+		.brand {
+			font-size: 1.8rem;
+			font-weight: 700;
+			color: var(--accent);
+		}
+		.back-link {
+			position: absolute;
+			left: 24px;
+			top: 50%;
+			transform: translateY(-50%);
+			padding: 8px 16px;
+			border-radius: 20px;
+			background: var(--accent-soft);
+			color: var(--accent-dark);
+			text-decoration: none;
+			font-weight: 600;
+		}
+
+		.content-wrap {
+			max-width: 1000px;
+			margin: 0 auto;
+			padding: 48px 24px 96px;
+		}
+
+		.form-card {
+			padding: 40px;
+			border-radius: 24px;
+			background: var(--surface-strong);
+			border: 1px solid var(--border);
+			box-shadow: var(--shadow-soft);
+			margin-bottom: 32px;
+		}
+		.form-card h2 {
+			font-size: 1.8rem;
+			margin-bottom: 8px;
+			color: var(--accent-dark);
+		}
+		.form-subtitle {
+			color: var(--text-soft);
+			margin-bottom: 32px;
+		}
+
+		.section-title {
+			font-size: 1.3rem;
+			font-weight: 600;
+			margin: 32px 0 20px;
+			padding-bottom: 12px;
+			border-bottom: 2px solid var(--accent-soft);
+			color: var(--accent-dark);
+		}
+
+		.input-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+			gap: 24px;
+			margin-bottom: 24px;
+		}
+
+		.input-wrap {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+		.input-wrap label {
+			font-weight: 600;
+			color: var(--text);
+		}
+		.input-wrap select,
+		.input-wrap input {
+			padding: 14px 16px;
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			background: rgba(255, 255, 255, 0.95);
+			font-size: 1rem;
+			transition: border 0.25s ease, box-shadow 0.25s ease;
+		}
+		.input-wrap select:focus,
+		.input-wrap input:focus {
+			outline: none;
+			border-color: var(--accent);
+			box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+		}
+		.input-help {
+			font-size: 0.85rem;
+			color: var(--text-soft);
+		}
+
+		.checkbox-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+			gap: 16px;
+		}
+		.checkbox-item {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 16px;
+			border-radius: 12px;
+			background: rgba(255, 255, 255, 0.7);
+			border: 2px solid transparent;
+			cursor: pointer;
+			transition: all 0.2s ease;
+		}
+		.checkbox-item:hover {
+			background: rgba(255, 255, 255, 0.9);
+			border-color: var(--accent-soft);
+		}
+		.checkbox-item input[type="checkbox"]:checked + label {
+			font-weight: 600;
+		}
+		.checkbox-item input[type="checkbox"] {
+			width: 18px;
+			height: 18px;
+		}
+
+		.primary-action {
+			margin: 40px auto 0;
+			display: inline-flex;
+			align-items: center;
+			gap: 12px;
+			padding: 18px 40px;
+			border-radius: 999px;
+			background: linear-gradient(135deg, var(--accent), #3b82f6);
+			color: #fff;
+			font-weight: 700;
+			font-size: 1.1rem;
+			box-shadow: 0 18px 40px rgba(37, 99, 235, 0.3);
+			transition: transform 0.3s ease;
+			cursor: pointer;
+			border: none;
+		}
+		.primary-action:hover {
+			transform: translateY(-4px);
+		}
+
+		.loading-box {
+			margin-top: 32px;
+			text-align: center;
+			display: none;
+		}
+		.loading-box.active {
+			display: block;
+		}
+		.loading-spinner {
+			width: 56px;
+			height: 56px;
+			border-radius: 50%;
+			border: 6px solid rgba(17, 24, 39, 0.08);
+			border-top-color: var(--accent);
+			margin: 0 auto 12px;
+			animation: spin 0.9s linear infinite;
+		}
+
+		.results-panel {
+			margin-top: 36px;
+			padding: 34px;
+			border-radius: 26px;
+			background: var(--surface-strong);
+			border: 1px solid var(--border);
+			box-shadow: var(--shadow-soft);
+			display: none;
+		}
+		.results-panel.active {
+			display: block;
+		}
+
+		.risk-display {
+			text-align: center;
+			margin-bottom: 32px;
+		}
+		.risk-probability {
+			font-size: 3.5rem;
+			font-weight: 700;
+			margin-bottom: 8px;
+		}
+		.risk-class {
+			font-size: 1.6rem;
+			font-weight: 600;
+			margin-bottom: 16px;
+		}
+		.risk-message {
+			font-size: 1.1rem;
+			color: var(--text-soft);
+		}
+
+		.risk-breakdown {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 16px;
+			margin: 32px 0;
+		}
+		.risk-item {
+			padding: 16px;
+			border-radius: 12px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			text-align: center;
+		}
+		.risk-item-label {
+			font-size: 0.9rem;
+			color: var(--text-soft);
+			margin-bottom: 8px;
+		}
+		.risk-item-value {
+			font-size: 1.5rem;
+			font-weight: 700;
+		}
+
+		@keyframes spin {
+			from { transform: rotate(0deg); }
+			to { transform: rotate(360deg); }
+		}
+
+		@media (max-width: 768px) {
+			.input-grid { grid-template-columns: 1fr; }
+			.checkbox-grid { grid-template-columns: 1fr; }
+			.form-card { padding: 24px; }
+			.back-link { position: static; transform: none; margin-bottom: 16px; display: inline-block; }
+		}
+	</style>
+</head>
+<body>
+	<header class="header" style="position: relative;">
+		<a href="/" class="back-link">← Back to Home</a>
+		<div class="brand">🏃‍♀️ Lifestyle Assessment</div>
+		<p style="color: var(--text-soft); margin-top: 8px;">Comprehensive diabetes risk based on lifestyle factors</p>
+	</header>
+
+	<div class="content-wrap">
+		<section class="form-card">
+			<h2>Comprehensive Lifestyle Health Assessment</h2>
+			<p class="form-subtitle">This detailed assessment analyzes 21 lifestyle and health factors to provide accurate diabetes risk prediction with 3-class output (No Diabetes, Pre-diabetes, Diabetes).</p>
+			
+			<form id="lifestyleForm">
+				<!-- Basic Demographics -->
+				<h3 class="section-title">👤 Basic Information</h3>
+				<div class="input-grid">
+					<div class="input-wrap">
+						<label for="Sex">Gender</label>
+						<select id="Sex" name="Sex" required>
+							<option value="0">Female</option>
+							<option value="1">Male</option>
+						</select>
+					</div>
+					<div class="input-wrap">
+						<label for="Age">Age Group</label>
+						<select id="Age" name="Age" required>
+							<option value="1">18-24 years</option>
+							<option value="2">25-29 years</option>
+							<option value="3">30-34 years</option>
+							<option value="4">35-39 years</option>
+							<option value="5">40-44 years</option>
+							<option value="6">45-49 years</option>
+							<option value="7">50-54 years</option>
+							<option value="8">55-59 years</option>
+							<option value="9">60-64 years</option>
+							<option value="10">65-69 years</option>
+							<option value="11">70-74 years</option>
+							<option value="12">75-79 years</option>
+							<option value="13">80+ years</option>
+						</select>
+					</div>
+					<div class="input-wrap">
+						<label for="BMI">BMI (Body Mass Index)</label>
+						<input id="BMI" name="BMI" type="number" step="0.1" min="15" max="50" value="25" required>
+						<div class="input-help">Weight (kg) ÷ Height² (m²)</div>
+					</div>
+
+				</div>
+
+				<!-- Health Conditions -->
+				<h3 class="section-title">🏥 Health Conditions</h3>
+				<div class="checkbox-grid">
+					<label class="checkbox-item">
+						<input type="checkbox" id="HighBP" name="HighBP" value="1">
+						<span><strong>High Blood Pressure</strong><br><small>Diagnosed hypertension</small></span>
+					</label>
+					<label class="checkbox-item">
+						<input type="checkbox" id="HighChol" name="HighChol" value="1">
+						<span><strong>High Cholesterol</strong><br><small>Elevated cholesterol levels</small></span>
+					</label>
+					<label class="checkbox-item">
+						<input type="checkbox" id="CholCheck" name="CholCheck" value="1">
+						<span><strong>Cholesterol Check</strong><br><small>Checked cholesterol in past 5 years</small></span>
+					</label>
+					<label class="checkbox-item">
+						<input type="checkbox" id="Stroke" name="Stroke" value="1">
+						<span><strong>Stroke History</strong><br><small>Ever had a stroke</small></span>
+					</label>
+					<label class="checkbox-item">
+						<input type="checkbox" id="HeartDiseaseorAttack" name="HeartDiseaseorAttack" value="1">
+						<span><strong>Heart Disease</strong><br><small>Coronary heart disease or heart attack</small></span>
+					</label>
+					<label class="checkbox-item">
+						<input type="checkbox" id="DiffWalk" name="DiffWalk" value="1">
+						<span><strong>Difficulty Walking</strong><br><small>Serious difficulty walking or climbing stairs</small></span>
+					</label>
+				</div>
+
+				<!-- Lifestyle Factors -->
+				<h3 class="section-title">🚬 Lifestyle Habits</h3>
+				<div class="checkbox-grid">
+					<label class="checkbox-item">
+						<input type="checkbox" id="Smoker" name="Smoker" value="1">
+						<span><strong>Smoker</strong><br><small>Have smoked at least 100 cigarettes in lifetime</small></span>
+					</label>
+					<label class="checkbox-item">
+						<input type="checkbox" id="HvyAlcoholConsump" name="HvyAlcoholConsump" value="1">
+						<span><strong>Heavy Alcohol Consumption</strong><br><small>Adult men: 14+ drinks/week, Adult women: 7+ drinks/week</small></span>
+					</label>
+					<label class="checkbox-item">
+						<input type="checkbox" id="PhysActivity" name="PhysActivity" value="1">
+						<span><strong>Physical Activity</strong><br><small>Physical activity in past 30 days (not including job)</small></span>
+					</label>
+					<label class="checkbox-item">
+						<input type="checkbox" id="Fruits" name="Fruits" value="1">
+						<span><strong>Fruits Consumption</strong><br><small>Consume fruit 1 or more times per day</small></span>
+					</label>
+					<label class="checkbox-item">
+						<input type="checkbox" id="Veggies" name="Veggies" value="1">
+						<span><strong>Vegetables Consumption</strong><br><small>Consume vegetables 1 or more times per day</small></span>
+					</label>
+				</div>
+
+				<!-- Healthcare Access -->
+				<h3 class="section-title">🏥 Healthcare Access</h3>
+				<div class="checkbox-grid">
+					<label class="checkbox-item">
+						<input type="checkbox" id="AnyHealthcare" name="AnyHealthcare" value="1">
+						<span><strong>Healthcare Coverage</strong><br><small>Have any kind of health care coverage</small></span>
+					</label>
+				</div>
+
+				<!-- Health Status -->
+				<h3 class="section-title">📊 Health Status</h3>
+				<div class="input-grid">
+					<div class="input-wrap">
+						<label for="GenHlth">General Health</label>
+						<select id="GenHlth" name="GenHlth" required>
+							<option value="1">Excellent</option>
+							<option value="2">Very good</option>
+							<option value="3">Good</option>
+							<option value="4">Fair</option>
+							<option value="5">Poor</option>
+						</select>
+					</div>
+					<div class="input-wrap">
+						<label for="MentHlth">Mental Health Days</label>
+						<input id="MentHlth" name="MentHlth" type="number" min="0" max="30" value="0" required>
+						<div class="input-help">Days of poor mental health in past 30 days</div>
+					</div>
+					<div class="input-wrap">
+						<label for="PhysHlth">Physical Health Days</label>
+						<input id="PhysHlth" name="PhysHlth" type="number" min="0" max="30" value="0" required>
+						<div class="input-help">Days of poor physical health in past 30 days</div>
+					</div>
+				</div>
+
+				<button type="submit" class="primary-action">🔬 Analyze Lifestyle Risk</button>
+			</form>
+
+			<div id="loading" class="loading-box">
+				<div class="loading-spinner"></div>
+				<p>Analyzing your comprehensive health profile...</p>
+			</div>
+
+			<div id="results" class="results-panel">
+				<div class="risk-display">
+					<div class="risk-probability" id="riskClass">No Diabetes</div>
+					<div class="risk-message" id="riskMessage">Assessment complete.</div>
+				</div>
+
+				<div class="risk-breakdown" id="riskBreakdown">
+					<!-- Risk probabilities will be populated here -->
+				</div>
+			</div>
+		</section>
+	</div>
+
+	<script>
+		const lifestyleForm = document.getElementById('lifestyleForm');
+		const loadingBox = document.getElementById('loading');
+		const resultsPanel = document.getElementById('results');
+
+		if (lifestyleForm) {
+			lifestyleForm.addEventListener('submit', async event => {
+				event.preventDefault();
+				loadingBox.classList.add('active');
+				resultsPanel.classList.remove('active');
+
+				// Collect form data
+				const formData = new FormData(lifestyleForm);
+				const payload = {};
+				
+				// Initialize all checkboxes to 0
+				const checkboxFields = ['HighBP', 'HighChol', 'CholCheck', 'Smoker', 'Stroke', 
+				                       'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 'Veggies',
+				                       'HvyAlcoholConsump', 'AnyHealthcare', 'DiffWalk'];
+				
+				checkboxFields.forEach(field => payload[field] = 0);
+				
+				// Process form data
+				for (const [key, value] of formData.entries()) {
+					if (checkboxFields.includes(key)) {
+						payload[key] = 1;
+					} else {
+						payload[key] = parseFloat(value);
+					}
+				}
+
+				try {
+					const response = await fetch('/predict_lifestyle', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(payload)
+					});
+					
+					const data = await response.json();
+					
+					if (!response.ok || data.error) {
+						throw new Error(data.error || 'Assessment failed');
+					}
+
+					displayResults(data);
+					resultsPanel.classList.add('active');
+					resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+				} catch (error) {
+					alert(error.message || 'Something went wrong during assessment.');
+				} finally {
+					loadingBox.classList.remove('active');
+				}
+			});
+		}
+
+		function displayResults(data) {
+			// Display predicted class
+			const classNames = ['No Diabetes', 'Pre-diabetes', 'Diabetes'];
+			const colors = ['#16a34a', '#f59e0b', '#dc2626'];
+			
+			document.getElementById('riskClass').textContent = classNames[data.predicted_class];
+			document.getElementById('riskClass').style.color = colors[data.predicted_class];
+			document.getElementById('riskMessage').textContent = data.risk_message || 'Assessment complete.';
+
+			// Display probability breakdown
+			const riskBreakdown = document.getElementById('riskBreakdown');
+			riskBreakdown.innerHTML = '';
+			
+			if (data.class_probabilities) {
+				data.class_probabilities.forEach((prob, index) => {
+					const item = document.createElement('div');
+					item.className = 'risk-item';
+					item.innerHTML = `
+						<div class="risk-item-label">${classNames[index]}</div>
+						<div class="risk-item-value" style="color: ${colors[index]};">${Math.round(prob * 100)}%</div>
+					`;
+					riskBreakdown.appendChild(item);
+				});
+			}
+		}
+	</script>
+</body>
+</html>
