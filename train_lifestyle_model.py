@@ -6,8 +6,9 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, ExtraTreesClassifier, AdaBoostClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score, confusion_matrix
 from sklearn.multiclass import OneVsRestClassifier
 import joblib
@@ -65,54 +66,104 @@ if FAST_MODE:
     print("🚀 Fast training mode enabled!")
     models = {
         'Random Forest': RandomForestClassifier(
-            n_estimators=50,    # Even faster for large datasets
-            max_depth=10,
-            min_samples_split=20,
-            min_samples_leaf=10,
+            n_estimators=200,    # Increased for better performance
+            max_depth=25,        # Deeper trees for complex patterns
+            min_samples_split=5, # More sensitive splitting
+            min_samples_leaf=2,  # More detailed leaves
+            max_features='sqrt', # Feature selection optimization
+            bootstrap=True,
+            oob_score=True,      # Out-of-bag validation
             random_state=42,
             n_jobs=-1,
             class_weight='balanced'
         ),
+        'Extra Trees': ExtraTreesClassifier(
+            n_estimators=200,
+            max_depth=25,
+            min_samples_split=3,
+            min_samples_leaf=1,
+            max_features='sqrt',
+            bootstrap=False,     # Extra Trees use all data
+            random_state=42,
+            n_jobs=-1,
+            class_weight='balanced'
+        ),
+        'Gradient Boosting': GradientBoostingClassifier(
+            n_estimators=80,     # Further reduced for speed
+            max_depth=4,         # Even shallower trees
+            learning_rate=0.2,   # Higher learning rate for faster convergence
+            subsample=0.6,       # Less data per tree for speed
+            max_features='sqrt',
+            random_state=42
+        ),
         'Logistic Regression': LogisticRegression(
-            max_iter=300,
+            max_iter=500,
             class_weight='balanced',
             solver='lbfgs',
+            C=1.0,
+            random_state=42
+        ),
+        'AdaBoost': AdaBoostClassifier(
+            n_estimators=80,     # Fast AdaBoost alternative
+            learning_rate=0.8,
             random_state=42
         )
     }
 else:
     models = {
         'Random Forest': RandomForestClassifier(
-            n_estimators=100,
-            max_depth=15,
-            min_samples_split=10,
-            min_samples_leaf=5,
+            n_estimators=500,    # Much more trees for full training
+            max_depth=30,        # Deeper trees
+            min_samples_split=3, # More aggressive splitting
+            min_samples_leaf=1,  # Maximum detail
+            max_features='sqrt', # Feature selection
+            bootstrap=True,
+            oob_score=True,      # Validation scoring
+            random_state=42,
+            n_jobs=-1,
+            class_weight='balanced'
+        ),
+        'Extra Trees': ExtraTreesClassifier(
+            n_estimators=500,
+            max_depth=35,
+            min_samples_split=2,
+            min_samples_leaf=1,
+            max_features='sqrt',
+            bootstrap=False,
             random_state=42,
             n_jobs=-1,
             class_weight='balanced'
         ),
         'Gradient Boosting': GradientBoostingClassifier(
-            n_estimators=50,
-            max_depth=3,
-            learning_rate=0.2,
-            random_state=42,
-            subsample=0.8
+            n_estimators=150,    # Reduced from 300 for faster training
+            max_depth=6,         # Reduced from 10 for speed
+            learning_rate=0.1,   # Increased from 0.05 for faster convergence
+            subsample=0.75,      # Slightly reduced for speed
+            max_features='sqrt',
+            random_state=42
         ),
         'Logistic Regression': LogisticRegression(
-            max_iter=500,
+            max_iter=1000,
             class_weight='balanced',
             solver='lbfgs',
+            C=0.1,  # L2 regularization for better generalization
             random_state=42
         )
     }
 
 results = {}
+import time
 
 for name, model in models.items():
     print(f"\n🔄 Training {name}...")
     
+    # Track training time
+    start_time = time.time()
+    
     # Train
     model.fit(X_train_scaled, y_train)
+    
+    training_time = time.time() - start_time
     
     # Predict
     y_pred_train = model.predict(X_train_scaled)
@@ -142,12 +193,14 @@ for name, model in models.items():
         'acc_train': acc_train,
         'acc_test': acc_test,
         'auc_test': auc_test,
-        'cv_mean': cv_mean
+        'cv_mean': cv_mean,
+        'training_time': training_time
     }
     
     print(f"   Accuracy (Train): {acc_train:.4f}")
     print(f"   Accuracy (Test):  {acc_test:.4f}")
     print(f"   AUC Score (Macro): {auc_test:.4f}")
+    print(f"   Training Time: {training_time:.2f}s")
     print(f"   CV Accuracy (5-fold): {cv_mean:.4f}")
     
     # Detailed classification report for best model preview
@@ -165,24 +218,41 @@ comparison = pd.DataFrame({
     'Model': list(results.keys()),
     'Accuracy (Test)': [r['acc_test'] for r in results.values()],
     'AUC Score': [r['auc_test'] for r in results.values()],
-    'CV Accuracy': [r['cv_mean'] for r in results.values()]
+    'CV Accuracy': [r['cv_mean'] for r in results.values()],
+    'Training Time (s)': [r['training_time'] for r in results.values()]
 })
 
 print(f"\n{comparison.to_string(index=False)}")
 
-best_model_name = max(results.keys(), key=lambda k: results[k]['acc_test'])
+# Select best model using weighted score (accuracy + AUC)
+best_model_name = max(results.keys(), key=lambda k: 0.6 * results[k]['acc_test'] + 0.4 * results[k]['auc_test'])
 best_model = results[best_model_name]['model']
 best_acc = results[best_model_name]['acc_test']
 best_auc = results[best_model_name]['auc_test']
+best_time = results[best_model_name]['training_time']
+
+# Also find fastest model
+fastest_model_name = min(results.keys(), key=lambda k: results[k]['training_time'])
+fastest_time = results[fastest_model_name]['training_time']
+fastest_acc = results[fastest_model_name]['acc_test']
 
 print(f"\n🏆 BEST MODEL: {best_model_name}")
 print(f"   Accuracy: {best_acc:.4f} ({best_acc*100:.2f}%)")
 print(f"   AUC Score: {best_auc:.4f}")
+print(f"   Training Time: {best_time:.2f}s")
 
-if best_acc >= 0.75:
+print(f"\n⚡ FASTEST MODEL: {fastest_model_name}")
+print(f"   Training Time: {fastest_time:.2f}s")
+print(f"   Accuracy: {fastest_acc:.4f} ({fastest_acc*100:.2f}%)")
+
+if best_acc >= 0.80:
+    print(f"   ✅ EXCELLENT PERFORMANCE ACHIEVED!")
+elif best_acc >= 0.75:
     print(f"   ✅ GOOD PERFORMANCE ACHIEVED!")
+elif best_acc >= 0.70:
+    print(f"   ⚠️  DECENT PERFORMANCE - Could be improved")
 else:
-    print(f"   ⚠️  Could be improved, but decent for lifestyle prediction")
+    print(f"   ❌ LOW PERFORMANCE - Needs improvement")
 
 # Save best model
 print(f"\n💾 Saving lifestyle model files...")
