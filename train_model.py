@@ -18,7 +18,7 @@ print("=" * 70)
 
 # Load data
 print("\n📂 Loading dataset...")
-df = pd.read_csv('diabetes_prediction_dataset.csv')
+df = pd.read_csv('data/diabetes_prediction_dataset.csv')
 print(f"✅ Loaded {len(df)} samples")
 
 # Preprocess categorical features

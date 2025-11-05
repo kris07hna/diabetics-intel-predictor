@@ -19,7 +19,7 @@ print("=" * 70)
 
 # Load data
 print("\n📂 Loading lifestyle dataset...")
-df = pd.read_csv('processed_data (2).csv')
+df = pd.read_csv('data/processed_data (2).csv')
 print(f"✅ Loaded {len(df)} samples")
 
 # Prepare features and target (removed Education, Income, NoDocbcCost)
